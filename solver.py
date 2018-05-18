@@ -81,7 +81,7 @@ def fit(model, optim, dataset):
                 
                 tic = time.time()
                 
-                torch.save(model, 'log/model-ep{}.pth'.format(epoch))
+                torch.save(model, 'log/log-orig/model-ep{}.pth'.format(epoch))
                 
 
         epoch_end_time = time.time()

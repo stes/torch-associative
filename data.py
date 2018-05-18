@@ -28,7 +28,6 @@ def load_dataset(path):
     batch_size_t = 1000
 
     img_size = 32
-       #### Noisy Dataset ####
 
     transform = transforms.Compose([
             transforms.Resize(img_size),
@@ -41,7 +40,6 @@ def load_dataset(path):
         datasets.MNIST(path, train=True, download=True, transform=transform),
         batch_size=batch_size_t, shuffle=True, num_workers=4)
 
-       #### Clean Dataset ####
 
     transform = transforms.Compose([
             transforms.Resize(img_size),   

@@ -1,16 +1,16 @@
 import torch
 
-import solver, models, data
+import solver, models, data, modelorig
 
 if __name__ == '__main__':
 
     # training parameters
-    lr = 0.0002
+    lr = 3e-4
     train_epoch = 20
     num_iter = 10
 
     # network
-    D_CL  = models.discriminator()
+    D_CL  = modelorig.SVHNmodel()
 
 
     # Adam optimizer

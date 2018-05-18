@@ -39,7 +39,15 @@ class AssociationMatrix(nn.Module):
         """
         
         # TODO not sure why clone is needed here
-        W = torch.einsum('mijk,nijk->mn', [xs.clone(), xt.clone()])
+        Bs = xs.size()[0]
+        Bt = xt.size()[0]
+        
+        xs = xs.clone().view(Bs, -1)
+        xt = xt.clone().view(Bt, -1)
+        
+        W = torch.mm(xs, xt.transpose(1,0))
+        
+        #W = torch.einsum('mi,ni->mn', [xs, xt])
         
         # p(xt | xs) as softmax, normalize over xt axis
         Pst = F.softmax(W, dim=1) # Ns x Nt
