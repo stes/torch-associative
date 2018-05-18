@@ -6,22 +6,28 @@ from torch import nn
 
 import torch.nn.functional as F
 
-def transform(x):
-    
-    c,w,h = x.size()
-    
-    add  = torch.from_numpy(np.random.normal(0,.2,size=(1,w,h))).float()
-    mult = torch.from_numpy(np.random.uniform(.3,1,size=(1,w,h))).float()
-    
-    return torch.clamp(x * mult + add, 0, 1)
+import torch.utils.data
 
-def get_dataset():
+class JointDataset(torch.utils.data.Dataset):
+    
+    def __init__(self, *datasets):
+        
+        self.datasets = datasets
+    
+    def __len__(self):
+        
+        return min([len(d) for d in self.datasets])
+        
+    def __getitem__(self, index):
+        
+        return [ds[index] for ds in self.datasets]
+        
+
+def load_dataset(path):
     batch_size_s = 100
     batch_size_t = 1000
 
     img_size = 32
-    noise = transforms.Lambda(transform)
-
        #### Noisy Dataset ####
 
     transform = transforms.Compose([
@@ -32,7 +38,7 @@ def get_dataset():
             transforms.Lambda(lambda x : x.expand([3,-1,-1]))
     ])
     train_mnist = torch.utils.data.DataLoader(
-        datasets.MNIST('data', train=True, download=True, transform=transform),
+        datasets.MNIST(path, train=True, download=True, transform=transform),
         batch_size=batch_size_t, shuffle=True, num_workers=4)
 
        #### Clean Dataset ####
@@ -43,7 +49,7 @@ def get_dataset():
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.188508,    0.19058265,  0.18615675))
     ])
     train_svhn = torch.utils.data.DataLoader(
-        datasets.SVHN('data', split='train', download=True, transform=transform),
+        datasets.SVHN(path, split='train', download=True, transform=transform),
         batch_size=batch_size_s, shuffle=True, num_workers=4)
     
     return train_svhn, train_mnist
