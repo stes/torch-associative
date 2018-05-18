@@ -47,8 +47,6 @@ class AssociationMatrix(nn.Module):
         
         W = torch.mm(xs, xt.transpose(1,0))
         
-        #W = torch.einsum('mi,ni->mn', [xs, xt])
-        
         # p(xt | xs) as softmax, normalize over xt axis
         Pst = F.softmax(W, dim=1) # Ns x Nt
         # p(xs | xt) as softmax, normalize over xs axis
@@ -82,41 +80,52 @@ class AssociativeLoss(nn.Module):
         
         return self.visit_weight*L_visit + self.walker_weight*L_walker
 
-def conv(m,n,k,act=True):
-    layers =  [nn.Conv2d(m,n,k,padding=0)]
+def conv2d(m,n,k,act=True):
+    layers =  [nn.Conv2d(m,n,k,padding=1)]
 
 
-    if act: layers += [nn.BatchNorm2d(n), nn.ReLU()]
+    if act: layers += [nn.ELU()]
 
     return nn.Sequential(
         *layers
     )
 
-class discriminator(nn.Module):
+class SVHNmodel(nn.Module):
+    
+    """
+    Model for application on SVHN data (32x32x3)
+    Architecture identical to https://github.com/haeusser/learning_by_association
+    """
     
     def __init__(self):
         
-        super(discriminator, self).__init__()
-        
+        super(SVHNmodel, self).__init__()
+
         self.features = nn.Sequential(
-            conv(3,32,3),
-            conv(32,32,3),
-            nn.MaxPool2d(2,2),
-            conv(32,64,3),
-            conv(64,64,3),
-            nn.MaxPool2d(2,1),
-            conv(64,128,3),
-            conv(128,128,3),
-            nn.AvgPool2d(4,2)
+            nn.InstanceNorm2d(3),
+            conv2d(3,  32, 3),
+            conv2d(32, 32, 3),
+            conv2d(32, 32, 3),
+            nn.MaxPool2d(2, 2, padding=0),
+            conv2d(32, 64, 3),
+            conv2d(64, 64, 3),
+            conv2d(64, 64, 3),
+            nn.MaxPool2d(2, 2, padding=0),
+            conv2d(64, 128, 3),
+            conv2d(128, 128, 3),
+            conv2d(128, 128, 3),
+            nn.MaxPool2d(2, 2, padding=0)
         )
         
         self.classifier = nn.Sequential(
-            conv(128,10,1),
+            nn.Linear(128*4*4, 10)
         )
         
-    def forward(self,x):
+    def forward(self, x):
         
-        f = self.features(x)
-        c = self.classifier(f)
+        phi  = self.features(x)
+        phi_mean = phi.view(-1, 128, 16).mean(dim=-1)
+        phi = phi.view(-1,128*4*4)
+        y = self.classifier(phi)
         
-        return f, c
+        return phi_mean, y

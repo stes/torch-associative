@@ -23,10 +23,7 @@ class JointDataset(torch.utils.data.Dataset):
         return [ds[index] for ds in self.datasets]
         
 
-def load_dataset(path):
-    batch_size_s = 100
-    batch_size_t = 1000
-
+def load_dataset(path, train=True):
     img_size = 32
 
     transform = transforms.Compose([
@@ -36,18 +33,14 @@ def load_dataset(path):
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.2881,0.2881,0.2881)),
             transforms.Lambda(lambda x : x.expand([3,-1,-1]))
     ])
-    train_mnist = torch.utils.data.DataLoader(
-        datasets.MNIST(path, train=True, download=True, transform=transform),
-        batch_size=batch_size_t, shuffle=True, num_workers=4)
-
-
+    mnist = datasets.MNIST(path, train=train, download=True, transform=transform)
+    
     transform = transforms.Compose([
             transforms.Resize(img_size),   
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.188508,    0.19058265,  0.18615675))
     ])
-    train_svhn = torch.utils.data.DataLoader(
-        datasets.SVHN(path, split='train', download=True, transform=transform),
-        batch_size=batch_size_s, shuffle=True, num_workers=4)
+    svhn = datasets.SVHN(path, split='train' if train else 'test', download=True, transform=transform)
     
-    return train_svhn, train_mnist
+    return {'mnist' : mnist, 'svhn' : svhn}
+

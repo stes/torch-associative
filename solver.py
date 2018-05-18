@@ -2,38 +2,54 @@ import time
 import pandas as pd
 import tqdm
 
+import os.path as osp
+
 import torch
 from torch import nn
 
 import models
 
-def fit(model, optim, dataset):
+def dual_iterator(ref, other):
+    other_it = zip(other)
+    for data in ref:
+        try:
+            data_, = next(other_it)
+        except StopIteration:
+            other_it = zip(other)
+            data_,   = next(other_it)
+            
+        
+        yield data, data_
+
+def fit(model, optim, dataset,
+        n_epochs=10, walker_weight = 1., visit_weight = .1,
+        savedir='./log'):
     
     train, val = dataset
     
     cudafy = lambda x : x.cuda()
     torch2np = lambda x : x.cpu().detach().numpy()
     
-    DA_loss  = models.AssociativeLoss(visit_weight=.1)
+    DA_loss  = models.AssociativeLoss(walker_weight=walker_weight, visit_weight=visit_weight)
     CL_loss  = nn.CrossEntropyLoss()
     
     cudafy(model)
-
-    train_epoch = 1000
+    model.train()
 
     print('training start!')
     start_time = time.time()
     
     num_iter = 0
     train_hist = []
-    pbar_epoch = tqdm.tqdm(range(train_epoch))
+    pbar_epoch = tqdm.tqdm(range(n_epochs))
     tic = time.time()
     for epoch in pbar_epoch:
         D_losses = []
         G_losses = []
         epoch_start_time = time.time()
 
-        pbar_batch = tqdm.tqdm(zip(train, val))
+        pbar_batch = tqdm.tqdm(dual_iterator(*dataset))
+        
         for (xs, ys), (xt, yt) in pbar_batch:
 
             xs = cudafy(xs)
@@ -70,7 +86,7 @@ def fit(model, optim, dataset):
             if num_iter % 10 == 0:
                 df = pd.DataFrame(train_hist)
 
-                df.to_csv('log/losshistory.csv')
+                df.to_csv(osp.join(savedir, 'losshistory.csv'))
 
                 acc_s = df['D acc src'][-100:].mean()
                 acc_t = df['D acc tgt'][-100:].mean()
@@ -81,7 +97,7 @@ def fit(model, optim, dataset):
                 
                 tic = time.time()
                 
-                torch.save(model, 'log/log-orig/model-ep{}.pth'.format(epoch))
+                torch.save(model, osp.join(savedir,'model-ep{}.pth'.format(epoch)))
                 
 
         epoch_end_time = time.time()

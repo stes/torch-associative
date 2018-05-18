@@ -1,7 +1,21 @@
 # Associative Domain Adaptation in PyTorch
 
-This repository contains an implementation of "Associative Domain Adaptation" by [Philipp Häusser].
+This repository contains an implementation of "Associative Domain Adaptation" [[1]](https://arxiv.org/abs/1708.00938).
+Right now, it features the `SVHN -> MNIST` transfer as described in the paper.
+The results line up the the ones reported in the paper, even slightly better at `Accuracy: 98.06 % / Error: 1.94 %` on the MNIST Validation set.
 
+This implementation is meant to be minimalistic, for easy adaptation to other projects.
+
+To train a model with standard settings, execute
+
+```
+> python train.py
+```
+
+Notes: 
+
+- The hyperparameters where loosely inspired by the ones reported in the original publication, but not too much finetuning was necessary to get to this result.
+- Note the use of the InstanceNormalization layer, which is similar, but not exactly similar to the reference implementation provided by the authors.
 
 ## Reference
 
