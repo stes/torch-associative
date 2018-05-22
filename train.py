@@ -18,8 +18,8 @@ def build_parser():
     # General setup
     parser.add_argument('--gpu', default=0, help='Specify GPU', type=int)
     parser.add_argument('--cpu', action='store_true', help="Use CPU Training")
-    parser.add_argument('--log', default="./log", help="Log directory. Will be created if non-existing")
-    parser.add_argument('--epochs', default="10", help="Number of Epochs (Full passes through the unsupervised training set)", type=int)
+    parser.add_argument('--log', default="./log/log2", help="Log directory. Will be created if non-existing")
+    parser.add_argument('--epochs', default="1000", help="Number of Epochs (Full passes through the unsupervised training set)", type=int)
     parser.add_argument('--checkpoint', default="", help="Checkpoint path")
     parser.add_argument('--learningrate', default=3e-4, type=float, help="Learning rate for Adam. Defaults to Karpathy's constant ;-)")
 
@@ -31,8 +31,8 @@ def build_parser():
     parser.add_argument('--targetbatch', default=1000, type=int, help="Batch size of Target")
     
     # Associative DA Hyperparams
-    parser.add_argument('--visit', default=.1, type=float, help="Visit weight")
-    parser.add_argument('--walker', default=1., type=float, help="Walker weight")
+    parser.add_argument('--visit', default=0.1, type=float, help="Visit weight")
+    parser.add_argument('--walker', default=1.0, type=float, help="Walker weight")
 
     return parser
 
