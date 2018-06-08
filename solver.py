@@ -17,28 +17,28 @@ def dual_iterator(ref, other):
         except StopIteration:
             other_it = zip(other)
             data_,   = next(other_it)
-            
-        
+
+
         yield data, data_
 
 def fit(model, optim, dataset,
         n_epochs=10, walker_weight = 1., visit_weight = .1,
-        savedir='./log'):
-    
+        savedir='./log', cuda=None):
+
     train, val = dataset
-    
-    cudafy = lambda x : x.cuda()
+
+    cudafy = lambda x : x if cuda is None else x.cuda(cuda)
     torch2np = lambda x : x.cpu().detach().numpy()
-    
+
     DA_loss  = models.AssociativeLoss(walker_weight=walker_weight, visit_weight=visit_weight)
     CL_loss  = nn.CrossEntropyLoss()
-    
+
     cudafy(model)
     model.train()
 
     print('training start!')
     start_time = time.time()
-    
+
     num_iter = 0
     train_hist = []
     pbar_epoch = tqdm.tqdm(range(n_epochs))
@@ -49,7 +49,7 @@ def fit(model, optim, dataset,
         epoch_start_time = time.time()
 
         pbar_batch = tqdm.tqdm(dual_iterator(*dataset))
-        
+
         for (xs, ys), (xt, yt) in pbar_batch:
 
             xs = cudafy(xs)
@@ -92,13 +92,13 @@ def fit(model, optim, dataset,
                 acc_t = df['D acc tgt'][-100:].mean()
 
                 pbar_batch.set_description('Epoch {}, Iteration {} - S {:.3f} % - T {:.3f} %'.format(epoch, num_iter,acc_s*100,acc_t*100))
-                
+
             if time.time() - tic > 60:
-                
+
                 tic = time.time()
-                
+
                 torch.save(model, osp.join(savedir,'model-ep{}.pth'.format(epoch)))
-                
+
 
         epoch_end_time = time.time()
         per_epoch_ptime = epoch_end_time - epoch_start_time
