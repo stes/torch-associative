@@ -1,3 +1,5 @@
+*Note: While this repository is useful for reproducing results from Häusser et al., please consider using the [salad](https://github.com/domainadaptation/salad) domain adaptation library in the future: https://domainadaptation.org*
+
 # Associative Domain Adaptation in PyTorch
 
 This repository contains an implementation of "Associative Domain Adaptation" [[1]](https://arxiv.org/abs/1708.00938).
